@@ -1,0 +1,59 @@
+Describe bakaup.vim
+	Before all
+		let g:bakaup_backup_dir = '/tmp/bakaup_vim_test_dir'
+		call mkdir(g:bakaup_backup_dir, 'p', 0700)
+	End
+
+	After all
+		call system('rm -rf ' . g:bakaup_backup_dir)
+	End
+
+
+	"#-=- -=- -=- -=- -=- -=- -=- -=- -=-#"
+
+
+	Describe should be right functioned
+		It backup on enabled
+			BakaupEnable
+			Assert Equals(exists('#BakaupBackup'), 1)
+		End
+
+		It restore option on enabled
+			let l:vim_backup = &backup
+			BakaupEnable
+			BakaupDisable
+			Assert Equals(&backup, l:vim_backup)
+		End
+
+		It delete event on disabled
+			BakaupDisable
+			Assert Equals(exists('#BakaupBackup'), 0)
+		End
+	End
+
+
+	"#--- --- ---#"
+
+
+	Describe bakaup#backup_to_dir()
+		It doing automatic backup file when write file
+			BakaupBackupExecute
+
+			let bakaup_auto_madedir = glob(g:bakaup_backup_dir . '/*')
+			let backup_is_exists = strchars(bakaup_auto_madedir) isnot 0
+
+			Assert Equals(backup_is_exists, 1)
+		End
+	End
+
+
+	"#--- --- ---#"
+
+
+	Describe bakaup#archive_backups()
+		It should be right functioned
+			let l:format_today = strftime('%Y-%m-%d', localtime())
+			TODO 'removed backups, and created archive to archivedir'
+		End
+	End
+End
