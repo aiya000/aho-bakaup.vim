@@ -1,7 +1,17 @@
+"call themis#log('log')
+
 Describe bakaup.vim
 	Before all
+		"TODO: using random name
 		let g:bakaup_backup_dir = '/tmp/bakaup_vim_test_dir'
-		call mkdir(g:bakaup_backup_dir, 'p', 0700)
+		if !isdirectory(g:bakaup_backup_dir)
+			call mkdir(g:bakaup_backup_dir, 'p', 0700)
+		endif
+
+		let g:bakaup_private['archive_dir'] = g:bakaup_backup_dir . '/archive'
+		if !isdirectory(g:bakaup_private['archive_dir'])
+			call mkdir(g:bakaup_private['archive_dir'], 'p', 0700)
+		endif
 	End
 
 	After all
@@ -12,8 +22,8 @@ Describe bakaup.vim
 	"#-=- -=- -=- -=- -=- -=- -=- -=- -=-#"
 
 
-	Describe should be right functioned
-		It backup on enabled
+	Describe commands should be right functioned
+		It created event on enabled
 			BakaupEnable
 			Assert Equals(exists('#BakaupBackup'), 1)
 		End
@@ -51,9 +61,57 @@ Describe bakaup.vim
 
 
 	Describe bakaup#archive_backups()
-		It should be right functioned
-			let l:format_today = strftime('%Y-%m-%d', localtime())
-			TODO 'removed backups, and created archive to archivedir'
+		" regex pattern for shell grep
+		let l:DAILY_PATTERN = "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
+
+		Context should be right functioned
+			It create archive
+				BakaupArchiveBackups
+
+				let l:archive_name = 'vim-bakaup_' . strftime('%Y-%m-%d', localtime()) . '.tar.bz2'
+				let l:cmd = printf('ls %s | grep -F "%s"', g:bakaup_private['archive_dir'], l:archive_name)
+				let l:archive      = system(l:cmd)
+
+				Assert Equals(empty(l:archive), 0)
+			End
+
+			It clean up files
+				let l:cmd = printf('ls %s | grep "%s"', g:bakaup_backup_dir, l:DAILY_PATTERN)
+
+				try
+					BakaupBackupExecute
+				catch
+					execute ':Fail' v:exception
+				endtry
+				let l:files_before = system(l:cmd)
+				Assert Equals(empty(l:files_before), 0)
+
+				try
+					BakaupArchiveBackups
+				catch
+					execute ':Fail' v:exception
+				endtry
+				let l:files_after = system(l:cmd)
+				Assert Equals(empty(l:files_after), 1)
+			End
+		End
+
+		It should not be happend bad side effects
+			try
+				BakaupBackupExecute
+			catch
+				execute ':Fail' v:exception
+			endtry
+			let l:files_before = system(printf('ls %s | grep -v "%s"', g:bakaup_backup_dir, l:DAILY_PATTERN))
+
+			try
+				BakaupArchiveBackups
+			catch
+				execute ':Fail' v:exception
+			endtry
+			let l:files_after  = system(printf('ls %s | grep -v "%s"', g:bakaup_backup_dir, l:DAILY_PATTERN))
+
+			Assert Equals(l:files_before, l:files_after)
 		End
 	End
 End
