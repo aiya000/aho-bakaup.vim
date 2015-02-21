@@ -1,0 +1,181 @@
+*bakaup.vim*	要約
+
+Version : 0.0.2
+Author  : aiya000
+License : MIT license  {{{
+    Permission is hereby granted, free of charge, to any person obtaining
+    a copy of this software and associated documentation files (the
+    "Software"), to deal in the Software without restriction, including
+    without limitation the rights to use, copy, modify, merge, publish,
+    distribute, sublicense, and/or sell copies of the Software, and to
+    permit persons to whom the Software is furnished to do so, subject to
+    the following conditions:
+    The above copyright notice and this permission notice shall be included
+    in all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+    OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+    IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
+    CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+}}}
+
+==============================================================================
+目次						*bakaup-contents*
+
+概要				|bakaup-introduction|
+使い方				|bakaup-usage|
+インターフェイス		|bakaup-interface|
+  変数				  |bakaup-variables|
+  コマンド			  |bakaup-commands|
+  関数				  |bakaup-functions|
+TODO				|bakaup-todo|
+更新履歴			|bakaup-changelog|
+
+
+==============================================================================
+概要						*bakaup-introduction*
+
+|bakaup| はVimのbackupを強化するために作られました。
+|bakaup| はファイルのバックアップを多重的に保存します。
+
+最新版:
+https://github.com/aiya000/aho-bakaup.vim
+
+
+==============================================================================
+使い方						*bakaup-usage*
+
+*BakaupBackupExecute* を実行することで
+規定のファイルバックアップ用ディレクトリにカレントバッファのファイルが
+filename.txt_2015-02-21 といった形式で出力されます。
+
+exam) *nix OSの場合
+現在時刻           => 2015-02-21 18:09
+規定ディレクトリ   => ~/.backup/bakaup/
+ファイル名         => filename.txt
+出力先ディレクトリ => ~/.backup/bakaup/2015-02-21/
+出力先ファイル     => ~/.backup/bakaup/2015-02-21/filename.txt_18:09
+
+以下、この「出力先ディレクトリ」を「バックアップディレクトリ」
+この「出力ファイル」の形式を「バックアップファイル」と呼びます。
+
+
+
+もしくは事前に |BakaupEnable| を実行するか
+|g:bakaup_auto_backup| を1に設定しておき |:write| を実行することで
+規定のファイルバックアップ用ディレクトリにカレントバッファのファイルの
+|:write| 実行前の状態がfilename.txt_2015-02-21 といった形式で出力されます。
+
+
+==============================================================================
+インターフェイス				*bakaup-interface*
+
+------------------------------------------------------------------------------
+変数						*bakaup-variables*
+
+g:bakaup_backup_dir				*g:bakaup_backup_dir*
+	既定値: expand("~/vim_bakaup")
+
+	|bakaup.vim| で使用するバックアップ用のディレクトリを指定します。
+	これに指定されたディレクトリに
+	ファイルのバックアップが蓄積されていきます。
+
+	これに指定されたディレクトリは
+	|bakaup.vim| 読み込み時に自動的に作成されます。
+
+
+g:bakaup_auto_backup				*g:bakaup_auto_backup*
+	既定値: 0
+
+	1である場合は |bakaup.vim| にバックアップ設定を委ねます。
+	これにより |bakaup.vim| の行うことは以下です。
+
+	- |backup| をオフにする
+	- |:write| 時に自動バックアップを行うイベントを登録する
+
+
+------------------------------------------------------------------------------
+コマンド					*bakaup.vim-commands*
+
+:BakaupBackupExecute				*:BakaupBackupExecute*
+
+|bakaup.vim| のバックアップを手動にて行います。
+カレントバッファの内容を規定ファイルにバックアップファイルに出力します。
+
+
+:BakaupEnable					*:BakaupEnable*
+
+|backup| の状態を内部に保存し
+|bakaup.vim| の自動バックアップ機能を有効にします。
+
+|backup| はオフにされます。
+
+
+:BakaupDisable					*:BakaupDisable*
+
+|bakaup.vim| の自動バックアップ機能を無効にします。
+
+|backup| は |BakaupEnable| 実行時または
+|bakaup.vim| の読み込み時の状態に復元されます。
+
+
+:BakaupArchiveBackups				*:BakaupArchiveBackups*
+
+|g:bakaup_backup_dir| 以下にある全てのバックアップディレクトリを
+'{g:bakaup_backup_dir}/archive' ディレクトリに
+'vim-backup_%Y-%m-%d.tar.bz2' というファイル名形式で圧縮します。
+( 直前に上記と同名のファイルが存在する場合は上書きされます )
+
+圧縮形式はbzip2になります。
+
+これの実行には 'tarコマンド' が必要になります。
+
+
+------------------------------------------------------------------------------
+関数						*bakaup-functions*
+
+bakaup#backup_to_dir()				*bakaup#backup_to_dir()*
+
+|:BakaupBackupExecute| の関数版です。
+
+
+bakaup#enable_auto_backup()			*bakaup#enable_auto_backup()*
+
+|:BakaupEnable| の関数版です。
+
+
+bakaup#disable_auto_backup()			*bakaup#disable_auto_backup()*
+
+|:BakaupDisable| の関数版です。
+
+
+bakaup#archive_backups()			*bakaup#archive_backups()*
+
+|:BakaupArchiveBackups| の関数版です。
+
+
+==============================================================================
+TODO						*bakaup-todo*
+
+
+
+==============================================================================
+更新履歴					*bakaup-changelog*
+
+v0.0.0
+バックアップ機能のコアエンジンを実装しました。
+
+
+v0.0.1
+基本機能を実装しました。
+
+
+v0.0.2
+ドキュメントを作成しました。
+
+
+==============================================================================
+vim:tw=78:ts=8:ft=help:norl:noet:fen:fdm=marker
