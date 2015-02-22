@@ -1,4 +1,4 @@
-*bakaup.vim*	要約
+*bakaup.vim*
 
 Version : 0.0.2
 Author  : aiya000
