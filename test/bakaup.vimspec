@@ -22,96 +22,148 @@ Describe bakaup.vim
 	"#-=- -=- -=- -=- -=- -=- -=- -=- -=-#"
 
 
-	Describe commands should be right functioned
-		It created event on enabled
-			BakaupEnable
-			Assert Equals(exists('#BakaupBackup'), 1)
-		End
-
-		It restore option on enabled
-			let l:vim_backup = &backup
-			BakaupEnable
-			BakaupDisable
-			Assert Equals(&backup, l:vim_backup)
-		End
-
-		It delete event on disabled
-			BakaupDisable
-			Assert Equals(exists('#BakaupBackup'), 0)
-		End
-	End
-
-
-	"#--- --- ---#"
-
-
-	Describe bakaup#backup_to_dir()
-		It doing automatic backup file when write file
-			BakaupBackupExecute
-
-			let bakaup_auto_madedir = glob(g:bakaup_backup_dir . '/*')
-			let backup_is_exists = strchars(bakaup_auto_madedir) isnot 0
-
-			Assert Equals(backup_is_exists, 1)
-		End
-	End
-
-
-	"#--- --- ---#"
-
-
-	Describe bakaup#archive_backups()
-		" regex pattern for shell grep
-		let l:DAILY_PATTERN = "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
-
-		Context should be right functioned
-			It create archive
-				BakaupArchiveBackups
-
-				let l:archive_name = 'vim-bakaup_' . strftime('%Y-%m-%d', localtime()) . '.tar.bz2'
-				let l:cmd = printf('ls %s | grep -F "%s"', g:bakaup_private['archive_dir'], l:archive_name)
-				let l:archive      = system(l:cmd)
-
-				Assert Equals(empty(l:archive), 0)
+	Describe command
+		Context BakaupEnable should be right functioned
+			Before
+				BakaupEnable
 			End
 
-			It clean up files
-				let l:cmd = printf('ls %s | grep "%s"', g:bakaup_backup_dir, l:DAILY_PATTERN)
+			It create event
+				Assert Equals(exists('#BakaupBackup'), 1)
+			End
+
+			Context fork a way to backup
+				Before
+					let l:new_file_name = localtime()
+					let l:new_file_path = g:bakaup_backup_dir . '/' . l:new_file_name
+					let l:insert_detail = 'abcde'
+
+					let l:dailydir      = g:bakaup_backup_dir . '/' . strftime('%Y-%m-%d')
+					let l:sub_extension = strftime(has('win32') ? '_at_%H-%M' : '_at_%H:%M')
+					let l:backed_up_file_name = l:new_file_name . l:sub_extension
+					let l:backed_up_file_path = l:dailydir . '/' . l:backed_up_file_name
+
+					execute ':e' l:new_file_path
+					execute ':normal! i' . l:insert_detail
+				End
+				After
+					call system('rm -f ' . l:new_file_path)
+				End
+
+				It on opened file not existed
+					" backed up current detail
+
+					let l:before_detail = getline(1, '$')
+					write
+					let l:after_detail  = readfile(l:backed_up_file_path)
+
+					Assert Equals(l:before_detail, l:after_detail)
+				End
+
+				It on opened file existed
+					" backed up previous detail
+
+					write
+					let l:origin_file_detail = readfile(l:new_file_path)
+
+					execute ':normal! i' . l:insert_detail
+					write
+					let l:backed_up_file_detail = readfile(l:backed_up_file_path)
+
+					Assert Equals(l:backed_up_file_detail, l:origin_file_detail)
+				End
+			End
+		End
+
+		Context BakaupDisable should be right functioned
+			It restore option
+				let l:vim_backup = &backup
+				BakaupEnable
+				BakaupDisable
+				Assert Equals(&backup, l:vim_backup)
+			End
+
+			It delete event
+				BakaupDisable
+				Assert Equals(exists('#BakaupBackup'), 0)
+			End
+		End
+	End
+
+
+	"#--- --- ---#"
+
+
+	Describe function
+		Context bakaup#backup_to_dir()
+			It doing automatic backup file when write file
+				BakaupBackupExecute
+
+				let bakaup_auto_madedir = glob(g:bakaup_backup_dir . '/*')
+				let backup_is_exists = strchars(bakaup_auto_madedir) isnot 0
+
+				Assert Equals(backup_is_exists, 1)
+			End
+		End
+
+
+		Context bakaup#archive_backups()
+			Before
+				" regex pattern for shell grep
+				let l:DAILY_PATTERN = "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
+			End
+
+			Context should be right functioned
+				It create archive
+					BakaupArchiveBackups
+
+					let l:archive_name = 'vim-bakaup_' . strftime('%Y-%m-%d', localtime()) . '.tar.bz2'
+					let l:cmd = printf('ls %s | grep -F "%s"', g:bakaup_private['archive_dir'], l:archive_name)
+					let l:archive      = system(l:cmd)
+
+					Assert Equals(empty(l:archive), 0)
+				End
+
+				It clean up files
+					let l:cmd = printf('ls %s | grep "%s"', g:bakaup_backup_dir, l:DAILY_PATTERN)
+
+					try
+						BakaupBackupExecute
+					catch
+						execute ':Fail' v:exception
+					endtry
+					let l:files_before = system(l:cmd)
+					Assert Equals(empty(l:files_before), 0)
+
+					try
+						BakaupArchiveBackups
+					catch
+						execute ':Fail' v:exception
+					endtry
+					let l:files_after = system(l:cmd)
+					Assert Equals(empty(l:files_after), 1)
+				End
+			End
+
+			It should not be happend bad side effects
+				let l:natural_files_cmd = printf('ls %s | grep -v "%s"', g:bakaup_backup_dir, l:DAILY_PATTERN)
 
 				try
 					BakaupBackupExecute
 				catch
 					execute ':Fail' v:exception
 				endtry
-				let l:files_before = system(l:cmd)
-				Assert Equals(empty(l:files_before), 0)
+				let l:files_before = system(l:natural_files_cmd)
 
 				try
 					BakaupArchiveBackups
 				catch
 					execute ':Fail' v:exception
 				endtry
-				let l:files_after = system(l:cmd)
-				Assert Equals(empty(l:files_after), 1)
+				let l:files_after  = system(l:natural_files_cmd)
+
+				Assert Equals(l:files_before, l:files_after)
 			End
-		End
-
-		It should not be happend bad side effects
-			try
-				BakaupBackupExecute
-			catch
-				execute ':Fail' v:exception
-			endtry
-			let l:files_before = system(printf('ls %s | grep -v "%s"', g:bakaup_backup_dir, l:DAILY_PATTERN))
-
-			try
-				BakaupArchiveBackups
-			catch
-				execute ':Fail' v:exception
-			endtry
-			let l:files_after  = system(printf('ls %s | grep -v "%s"', g:bakaup_backup_dir, l:DAILY_PATTERN))
-
-			Assert Equals(l:files_before, l:files_after)
 		End
 	End
 End

@@ -36,7 +36,13 @@ function! bakaup#backup_to_dir()
 	let l:filename      = expand('%:t') . l:sub_extension
 	let l:location      = l:dailydir . '/' . l:filename
 
-	call writefile(getline(1, '$'), l:location)
+	" If editing exists file, backup detail of before :write
+	" or backup current detail
+	if filereadable(expand('%:p'))
+		call writefile(readfile(expand('%:p')), l:location)
+	else
+		call writefile(getline(1, '$'), l:location)
+	endif
 endfunction
 
 
@@ -53,7 +59,7 @@ function! bakaup#enable_auto_backup()
 	" registered auto backup
 	augroup BakaupBackup
 		autocmd!
-		autocmd BufWritePre ?\+ silent call bakaup#backup_to_dir()
+		autocmd BufWritePre ?\+ call bakaup#backup_to_dir()
 	augroup END
 endfunction
 
@@ -105,7 +111,7 @@ function! s:bakaup_archiver()
 
 	" If backed up files is nothing
 	if len(l:backed_ups) < 1
-		" nanimo sinai
+		" nothing to do
 		return 1
 	endif
 
@@ -131,7 +137,9 @@ function! s:bakaup_archiver()
 	return 0
 endfunction
 
-function! s:to_globf(files)  " file_names to glob pattern of {..,..,..}
+
+" file_names to glob pattern of {..,..,..}
+function! s:to_globf(files)
 	" If a:files is single file, no glob a file
 	" If a:files is many files, glob files
 	return len(a:files) > 1

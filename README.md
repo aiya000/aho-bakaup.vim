@@ -12,4 +12,3 @@ You only write to your vimrc.
     let g:bakaup_auto_backup = 1  
 
 If it set, auto backup file to default backup directory.  
-
