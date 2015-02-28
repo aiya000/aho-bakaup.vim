@@ -2,8 +2,10 @@ author: aiya000
 since:  2015-02-12  
 
 # aho-bakaup.vim
-aho-bakaup.vim is auto backuper for vim.  
+aho-bakaup.vim is auto backuper for vim .  
 auto backup to directory when executed :write  
+
+aho-bakaup supported \*NIX OS only .  
 
 
 ## Introduce
