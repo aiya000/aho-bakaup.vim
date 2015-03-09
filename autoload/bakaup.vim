@@ -105,7 +105,7 @@ endfunction
 
 
 function! s:bakaup_archiver()
-	let l:daily_pattern = "^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]"
+	let l:daily_pattern = '^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
 	let l:ls_cmd     = printf('ls %s | grep "%s"', g:bakaup_backup_dir, l:daily_pattern)
 	let l:backed_ups = split(system(l:ls_cmd), "\n")
 

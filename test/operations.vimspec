@@ -1,0 +1,100 @@
+"call themis#log('log')
+source ./setup.vim
+
+Describe operation
+	Before all
+		call BeforeAll()
+	End
+
+	After all
+		call AfterAll()
+	End
+
+
+	"#-=- -=- -=- -=- -=- -=- -=- -=- -=-#"
+
+
+	Context BakaupBackupExecute
+		It doing automatic backup file when write file
+			BakaupBackupExecute
+
+			let bakaup_auto_madedir = glob(g:bakaup_backup_dir . '/*')
+			let backup_is_exists = strchars(bakaup_auto_madedir) isnot 0
+
+			Assert Equals(backup_is_exists, 1)
+		End
+	End
+
+
+	"#-=- -=- -=- -=- -=- -=- -=- -=- -=-#"
+
+
+	Context BakaupArchiveBackups
+		" regex pattern for shell grep
+		let l:DAILY_PATTERN = '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
+
+		Context should be right functioned
+			It create archive
+				BakaupArchiveBackups
+
+				let l:archive_name  = 'vim-bakaup_' . strftime('%Y-%m-%d', localtime()) . '.tar.bz2'
+				let l:files         = GetFiles(g:bakaup_private['archive_dir'])
+				let l:names         = map(l:files, 'fnamemodify(v:val, ":t")')
+				let l:archive_exist = index(l:names, l:archive_name)
+
+				" Archive was created
+				Assert (l:archive_exist !=# -1)
+			End
+
+			"#--- --- ---#"
+
+			It clean up files
+				try
+					" Create file in directory
+					BakaupBackupExecute
+				catch
+					execute ':Fail' v:exception
+				endtry
+
+				let l:dirs_before  = GetFiles(g:bakaup_backup_dir)
+				let l:bdirs_before = filter(l:dirs_before, 'v:val =~# "'.l:DAILY_PATTERN.'$"')
+				" should not be remain dirs
+				Assert Equals(empty(l:bdirs_before), 0)
+
+				try
+					" Create archive
+					" and Clean up directory that backed up
+					BakaupArchiveBackups
+				catch
+					execute ':Fail' v:exception
+				endtry
+
+				let l:dirs_after  = GetFiles(g:bakaup_backup_dir)
+				let l:bdirs_after = filter(l:dirs_after, 'v:val =~# "'.l:DAILY_PATTERN.'$"')
+				" should be cleaned dirs
+				Assert Equals(empty(l:bdirs_after), 1)
+			End
+		End
+
+		"#--- --- ---#"
+
+		It should not be happend bad side effects
+			" Create unrelated file
+			execute ':write' (g:bakaup_backup_dir . '/unrelated.dummy')
+
+			" Get exists unrelated file
+			let l:dirs_before      = GetFiles(g:bakaup_backup_dir)
+			let l:unrelated_before = filter(l:dirs_before, 'v:val !~# "'.l:DAILY_PATTERN.'$"')
+
+			try
+				BakaupArchiveBackups
+			catch
+				execute ':Fail' v:exception
+			endtry
+			let l:dirs_after      = GetFiles(g:bakaup_backup_dir)
+			let l:unrelated_after = filter(l:dirs_before, 'v:val !~# "'.l:DAILY_PATTERN.'$"')
+
+			Assert Equals(l:unrelated_before, l:unrelated_after)
+		End
+	End
+End

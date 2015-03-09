@@ -46,6 +46,7 @@ endfunction "}}}
 
 " --- --- --- --- --- --- --- --- --- "
 
+
 if g:bakaup_auto_backup
 	BakaupEnable
 
