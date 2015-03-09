@@ -19,6 +19,13 @@ function! s:echo_error(msg)
 endfunction
 
 
+function! s:get_files(dir)
+	let l:files_str = glob(a:dir . '/*')
+	let l:files     = split(l:files_str, '\n')
+	return l:files
+endfunction
+
+
 "#-=- -=- -=- -=- -=- -=- -=- -=- -=-#"
 
 
@@ -104,10 +111,13 @@ function! bakaup#archive_backups()
 endfunction
 
 
+" If do it, return 0
+" If don't it, return 1
 function! s:bakaup_archiver()
-	let l:daily_pattern = '^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]'
-	let l:ls_cmd     = printf('ls %s | grep "%s"', g:bakaup_backup_dir, l:daily_pattern)
-	let l:backed_ups = split(system(l:ls_cmd), "\n")
+	let l:daily_pattern = '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$'
+	let l:dirs          = s:get_files(g:bakaup_backup_dir)
+	let l:names         = map(l:dirs, 'fnamemodify(v:val, ":t")')
+	let l:backed_ups    = filter(l:dirs, printf('v:val =~# "%s"', l:daily_pattern))
 
 	" If backed up files is nothing
 	if len(l:backed_ups) < 1
@@ -118,19 +128,23 @@ function! s:bakaup_archiver()
 	" Prepare shell command
 	let l:archive_name = 'vim-bakaup_' . strftime('%Y-%m-%d', localtime()) . '.tar.bz2'
 	let l:glob_format  = s:to_globf(l:backed_ups)
-	let l:tar_cmd = printf('tar jcvf %s/%s %s/%s ; echo $?',
-	\			g:bakaup_private['archive_dir'], l:archive_name, g:bakaup_backup_dir, l:glob_format)
 
-	" Archive backup directoris
-	let l:tar_result = system(l:tar_cmd)
-	if split(l:tar_result, "\n")[-1] !=# 0
+	let l:archive_path = g:bakaup_private['archive_dir'] . '/' . l:archive_name
+	let l:target_path  = g:bakaup_backup_dir . '/' . l:glob_format
+	let l:tar_cmd      = printf('tar jcvf %s %s ; echo $?', l:archive_path, l:target_path)
+
+	" Archive backup directories
+	let l:tar_result      = system(l:tar_cmd)
+	let l:tar_return_code = split(l:tar_result, '\n')[-1]
+	if l:tar_return_code !=# 0
 		throw l:tar_result
 	endif
 
-	" Remove backed up directories
-	let l:rm_cmd    = 'rm -rf ' . printf('%s/%s', g:bakaup_backup_dir, l:glob_format) . '; echo $?'
-	let l:rm_result = system(l:rm_cmd)
-	if split(l:rm_result, "\n")[-1] !=# 0
+	" Clean backed up directories
+	let l:rm_cmd         = printf('rm -rf %s ; echo $?', l:target_path)
+	let l:rm_result      = system(l:rm_cmd)
+	let l:rm_return_code = split(l:rm_result, '\n')[-1]
+	if l:rm_return_code !=# 0
 		throw l:rm_result
 	endif
 
