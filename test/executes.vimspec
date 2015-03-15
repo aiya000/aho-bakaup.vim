@@ -1,7 +1,7 @@
 "call themis#log('log')
 source ./setup.vim
 
-Describe operation
+Describe execution
 	Before all
 		call BeforeAll()
 	End
@@ -120,7 +120,7 @@ Describe operation
 		" {{{
 			let l:target_dir = expand('~/ahobaka_dir')
 
-			execute ':BakaupSetBakaupDir' l:target_dir
+			execute ':BakaupSetBackupDir' l:target_dir
 
 			Assert Equals(g:bakaup_backup_dir, l:target_dir)
 			Assert Equals(g:bakaup_private['archive_dir'], l:target_dir . '/archive')

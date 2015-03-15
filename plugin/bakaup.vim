@@ -18,7 +18,7 @@ command! BakaupDisable        call bakaup#disable_auto_backup()
 command! BakaupArchiveBackups call bakaup#archive_backups()
 
 command! -nargs=1 -complete=dir
-\        BakaupSetBakaupDir   call bakaup#set_bakaup_dir(<q-args>)
+\        BakaupSetBackupDir   call bakaup#set_bakaup_dir(<q-args>)
 
 command! BakaupExplore        call bakaup#explore()
 command! BakaupTexplore       call bakaup#explore('tab')
