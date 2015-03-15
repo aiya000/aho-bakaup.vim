@@ -86,6 +86,9 @@ g:bakaup_backup_dir				*g:bakaup_backup_dir*
 	これに指定されたディレクトリは
 	|bakaup.vim| 読み込み時に自動的に作成されます。
 
+	こちらをVim実行中環境で変更したい場合は
+	|let|を使用せずに|BakaupSetBakaupDir|を使用してください。
+
 
 g:bakaup_auto_backup				*g:bakaup_auto_backup*
 	既定値: 0
@@ -134,27 +137,21 @@ g:bakaup_auto_backup				*g:bakaup_auto_backup*
 これの実行には 'tarコマンド' が必要になります。
 
 
-------------------------------------------------------------------------------
-関数						*bakaup-functions*
+:BakaupSetBakaupDir				*:BakaupSetBakaupDir*
 
-bakaup#backup_to_dir()				*bakaup#backup_to_dir()*
+|g:bakaup_backup_dir| 及び |BakaupArchiveBackups| 用のディレクトリを
+Vim実行中環境で動的に変更する場合に使用します。
 
-|:BakaupBackupExecute| の関数版です。
-
-
-bakaup#enable_auto_backup()			*bakaup#enable_auto_backup()*
-
-|:BakaupEnable| の関数版です。
+こちらを使用せずに|let|で|g:bakaup_backup_dir|を変更した場合は
+プラグインの動作がうまく行かない場合があります。
 
 
-bakaup#disable_auto_backup()			*bakaup#disable_auto_backup()*
+:BakaupExplore					*:BakaupExplore*
+:BakaupTexplore					*:BakaupTexplore*
+:BakaupVexplore					*:BakaupVexplore*
+:BakaupSexplore					*:BakaupSexplore*
 
-|:BakaupDisable| の関数版です。
-
-
-bakaup#archive_backups()			*bakaup#archive_backups()*
-
-|:BakaupArchiveBackups| の関数版です。
+|g:bakaup_backup_dir|をnetrwで開きます。
 
 
 ==============================================================================
@@ -176,6 +173,10 @@ v0.0.1
 
 v0.0.2
 ドキュメントを作成しました。
+
+
+v0.0.3
+いくつかのコマンドを追加しました。
 
 
 ==============================================================================

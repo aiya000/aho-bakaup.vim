@@ -1,1 +1,2 @@
 call themis#helper('command').with(themis#helper('assert'))
+call themis#option('runtimepath', ['..', $VIM.'/vim74'])

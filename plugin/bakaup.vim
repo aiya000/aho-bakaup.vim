@@ -17,6 +17,14 @@ command! BakaupEnable         call bakaup#enable_auto_backup()
 command! BakaupDisable        call bakaup#disable_auto_backup()
 command! BakaupArchiveBackups call bakaup#archive_backups()
 
+command! -nargs=1 -complete=dir
+\        BakaupSetBakaupDir   call bakaup#set_bakaup_dir(<q-args>)
+
+command! BakaupExplore        call bakaup#explore()
+command! BakaupTexplore       call bakaup#explore('tab')
+command! BakaupVexplore       call bakaup#explore('vertical')
+command! BakaupSexplore       call bakaup#explore('horizon')
+
 
 "#-=- -=- -=- -=- -=- -=- -=- -=- -=-#"
 " Private field

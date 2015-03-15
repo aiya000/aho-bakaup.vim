@@ -13,7 +13,7 @@ endfunction
 
 " Used themis :After All
 function! AfterAll()
-	call system('rm -rf ' . g:bakaup_backup_dir)
+	call RemoveFile(g:bakaup_backup_dir)
 endfunction
 
 "#--- --- ---#"
@@ -22,4 +22,10 @@ function! GetFiles(dir)
 	let l:files_str = glob(a:dir . '/*')
 	let l:files     = split(l:files_str, '\n')
 	return l:files
+endfunction
+
+"#--- --- ---#"
+
+function! RemoveFile(path)
+	call system('rm -rf ' . a:path)
 endfunction

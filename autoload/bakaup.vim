@@ -1,6 +1,6 @@
 " make directory and set owner
 " args => a:dir :: String
-function! s:mkdir_with_conditions(dir)
+function! s:mkdir_with_conditions(dir) "{{{
 	call mkdir(a:dir, 'p', 0700)
 
 	if has('unix') && executable('chown')
@@ -9,21 +9,21 @@ function! s:mkdir_with_conditions(dir)
 		let l:command   = printf('chown -R %s:%s %s', l:username, l:groupname, a:dir)
 		call system(l:command)
 	endif
-endfunction
+endfunction "}}}
 
 
-function! s:echo_error(msg)
+function! s:echo_error(msg) "{{{
 	echohl Error
 	echo a:msg
 	echohl None
-endfunction
+endfunction "}}}
 
 
-function! s:get_files(dir)
+function! s:get_files(dir) "{{{
 	let l:files_str = glob(a:dir . '/*')
 	let l:files     = split(l:files_str, '\n')
 	return l:files
-endfunction
+endfunction "}}}
 
 
 "#-=- -=- -=- -=- -=- -=- -=- -=- -=-#"
@@ -31,7 +31,7 @@ endfunction
 
 "" Execute backup file to backup directory
 "" Backup directory depends localtime
-function! bakaup#backup_to_dir()
+function! bakaup#backup_to_dir() abort
 	" base directory for file backup at today
 	let l:dailydir = g:bakaup_backup_dir . '/' . strftime('%Y-%m-%d')
 
@@ -92,7 +92,7 @@ endfunction
 
 
 "" Archive backup files
-function! bakaup#archive_backups()
+function! bakaup#archive_backups() abort
 	if !executable('tar')
 		call s:echo_error('sorry, bakaup archiver needs tar command')
 		return
@@ -113,7 +113,7 @@ endfunction
 
 " If do it, return 0
 " If don't it, return 1
-function! s:bakaup_archiver()
+function! s:bakaup_archiver() "{{{
 	let l:daily_pattern = '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$'
 	let l:dirs          = s:get_files(g:bakaup_backup_dir)
 	let l:names         = map(l:dirs, 'fnamemodify(v:val, ":t")')
@@ -149,14 +149,44 @@ function! s:bakaup_archiver()
 	endif
 
 	return 0
-endfunction
+endfunction "}}}
 
 
 " file_names to glob pattern of {..,..,..}
-function! s:to_globf(files)
+function! s:to_globf(files) "{{{
 	" If a:files is single file, no glob a file
 	" If a:files is many files, glob files
 	return len(a:files) > 1
 	\    ? '{' . join(a:files, ',') . '}'
 	\    : a:files[0]
+endfunction "}}}
+
+
+"#-=- -=- -=- -=- -=- -=- -=- -=- -=-#"
+
+
+"" Set bakaup variable, that for expected directory
+"" dir => new backup directory
+function! bakaup#set_bakaup_dir(dir)
+	let l:archive_dir                   = a:dir . '/archive'
+	let g:bakaup_backup_dir             = a:dir
+	let g:bakaup_private['archive_dir'] = l:archive_dir
+endfunction
+
+
+"#-=- -=- -=- -=- -=- -=- -=- -=- -=-#"
+
+
+"" Explorer open backup directory
+"" args => a:0 = empty, 'tab', 'vertical', or 'horizon'
+function! bakaup#explore(...)
+	if empty(a:000)
+		execute ':Explore' g:bakaup_backup_dir
+	elseif a:1 ==# 'tab'
+		execute ':Texplore' g:bakaup_backup_dir
+	elseif a:1 ==# 'vertical'
+		execute ':Vexplore' g:bakaup_backup_dir
+	elseif a:1 ==# 'horizon'
+		execute ':Sexplore' g:bakaup_backup_dir
+	endif
 endfunction
