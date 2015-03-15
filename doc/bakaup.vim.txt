@@ -87,7 +87,7 @@ g:bakaup_backup_dir				*g:bakaup_backup_dir*
 	|bakaup.vim| 読み込み時に自動的に作成されます。
 
 	こちらをVim実行中環境で変更したい場合は
-	|let|を使用せずに|BakaupSetBakaupDir|を使用してください。
+	|let|を使用せずに|BakaupSetBackupDir|を使用してください。
 
 
 g:bakaup_auto_backup				*g:bakaup_auto_backup*
@@ -137,7 +137,7 @@ g:bakaup_auto_backup				*g:bakaup_auto_backup*
 これの実行には 'tarコマンド' が必要になります。
 
 
-:BakaupSetBakaupDir				*:BakaupSetBakaupDir*
+:BakaupSetBackupDir				*:BakaupSetBackupDir*
 
 |g:bakaup_backup_dir| 及び |BakaupArchiveBackups| 用のディレクトリを
 Vim実行中環境で動的に変更する場合に使用します。
