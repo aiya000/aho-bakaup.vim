@@ -7,6 +7,14 @@ auto backup to directory when executed :write
 
 aho-bakaup supported \*NIX OS only .  
 
+あなたはこれを入れるだけで、  
+Vimで編集した多くのファイルのバックアップを貯めておくことができます。  
+
+バックアップを貯めることにより、何年の何日の何時何分かにあなたがバックアップした  
+ファイルの内容を得ることができます。  
+
+バックアップはデフォルトでは、ファイル書き込み時に行われるようになっています。  
+
 
 ## Introduce
 You only write to your vimrc.  
