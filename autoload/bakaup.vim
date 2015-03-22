@@ -39,15 +39,15 @@ function! bakaup#backup_to_dir() abort
 		call s:mkdir_with_conditions(l:dailydir)
 	endif
 
+	let l:filename      = fnameescape(expand('%:p'))
 	let l:sub_extension = strftime(has('win32') ? '_at_%H-%M' : '_at_%H:%M')
-	let l:filename      = substitute(expand('%:p'), '/', '%', 'g')
-	let l:filepath_name = l:filename . l:sub_extension
-	let l:location      = l:dailydir . '/' . l:filepath_name
+	let l:backup_name   = substitute(l:filename, '/', '%', 'g') . l:sub_extension
+	let l:location      = l:dailydir . '/' . l:backup_name
 
 	" If editing exists file, backup detail of before :write
 	" or backup current detail
-	if filereadable(expand('%:p'))
-		call writefile(readfile(expand('%:p')), l:location)
+	if filereadable(l:filename)
+		call writefile(readfile(l:filename), l:location)
 	else
 		call writefile(getline(1, '$'), l:location)
 	endif
@@ -110,7 +110,8 @@ function! s:bakaup_archiver() "{{{
 	let l:daily_pattern = '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$'
 	let l:dirs          = s:get_files(g:bakaup_backup_dir)
 	let l:names         = map(l:dirs, 'fnamemodify(v:val, ":t")')
-	let l:backed_ups    = filter(l:dirs, printf('v:val =~# "%s"', l:daily_pattern))
+	let l:names1        = map(l:names, 'fnameescape(v:val)')
+	let l:backed_ups    = filter(l:names1, printf('v:val =~# "%s"', l:daily_pattern))
 
 	" If backed up files is nothing
 	if len(l:backed_ups) < 1
