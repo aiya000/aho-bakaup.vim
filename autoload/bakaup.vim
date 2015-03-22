@@ -40,8 +40,9 @@ function! bakaup#backup_to_dir() abort
 	endif
 
 	let l:sub_extension = strftime(has('win32') ? '_at_%H-%M' : '_at_%H:%M')
-	let l:filename      = expand('%:t') . l:sub_extension
-	let l:location      = l:dailydir . '/' . l:filename
+	let l:filename      = substitute(expand('%:p'), '/', '%', 'g')
+	let l:filepath_name = l:filename . l:sub_extension
+	let l:location      = l:dailydir . '/' . l:filepath_name
 
 	" If editing exists file, backup detail of before :write
 	" or backup current detail
@@ -58,11 +59,6 @@ endfunction
 
 "" Enable bakaup auto backup
 function! bakaup#enable_auto_backup()
-	let g:bakaup_private['default_backup'] = &backup
-
-	" disabled default backup
-	set nobackup
-
 	" registered auto backup
 	augroup BakaupBackup
 		autocmd!
@@ -76,9 +72,6 @@ endfunction
 
 "" Disable bakaup auto backup
 function! bakaup#disable_auto_backup()
-	" registered auto backup
-	let &backup = g:bakaup_private['default_backup']
-
 	try
 		" unregistered auto backup
 		augroup! BakaupBackup

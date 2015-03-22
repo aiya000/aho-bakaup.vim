@@ -1,6 +1,6 @@
 source ./setup.vim
 
-Describe command
+Describe enable command
 	Before all
 		call BeforeAll()
 	End
@@ -28,13 +28,14 @@ Describe command
 			Before
 				" {{{
 				let l:new_file_name = localtime()
-				let l:new_file_path = g:bakaup_backup_dir . '/' . l:new_file_name
+				let l:new_file_path = g:bakaup_backup_dir . '/' . l:new_file_name  " temporary path
 				let l:insert_detail = 'abcde'
 
 				let l:dailydir      = g:bakaup_backup_dir . '/' . strftime('%Y-%m-%d')
 				let l:sub_extension = strftime(has('win32') ? '_at_%H-%M' : '_at_%H:%M')
-				let l:backed_up_file_name = l:new_file_name . l:sub_extension
-				let l:backed_up_file_path = l:dailydir . '/' . l:backed_up_file_name
+				let l:backed_up_file_name      = substitute(l:new_file_path, '/', '%', 'g')
+				let l:backed_up_file_path_name = l:backed_up_file_name . l:sub_extension
+				let l:backed_up_file_path      = l:dailydir . '/' . l:backed_up_file_path_name
 
 				execute ':e' l:new_file_path
 				execute ':normal! i' . l:insert_detail
@@ -78,15 +79,6 @@ Describe command
 
 	Context BakaupDisable should be right functioned
 	" {{{
-		It restore option
-		" {{{
-			let l:vim_backup = &backup
-			BakaupEnable
-			BakaupDisable
-			Assert Equals(&backup, l:vim_backup)
-		" }}}
-		End
-
 		It delete event
 		" {{{
 			BakaupDisable

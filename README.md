@@ -5,13 +5,15 @@ since:  2015-02-12
 aho-bakaup.vim is auto backuper for vim .  
 auto backup to directory when executed :write  
 
-aho-bakaup supported \*NIX OS only .  
+BakaupArchive command supported \*NIX OS only .  
 
 あなたはこれを入れるだけで、  
 Vimで編集した多くのファイルのバックアップを貯めておくことができます。  
 
 バックアップを貯めることにより、何年の何日の何時何分かにあなたがバックアップした  
 ファイルの内容を得ることができます。  
+
+また、バックアップにはundofileと同じくファイル名にディレクトリ情報が保存されます。  
 
 バックアップはデフォルトでは、ファイル書き込み時に行われるようになっています。  
 

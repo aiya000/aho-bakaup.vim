@@ -50,14 +50,16 @@ https://github.com/aiya000/aho-bakaup.vim
 
 *BakaupBackupExecute* を実行することで
 規定のファイルバックアップ用ディレクトリにカレントバッファのファイルが
-filename.txt_2015-02-21 といった形式で出力されます。
+2015-02-21/%home%username%filename.txt_at_18:09 といった形式で出力されます。
+( カレントバッファのファイルが/home/username/filename.txt
+  時間が18時09分の場合 )
 
 exam) *nix OSの場合
 現在時刻           => 2015-02-21 18:09
 規定ディレクトリ   => ~/.backup/bakaup/
-ファイル名         => filename.txt
+ファイルパス       => /home/username/filename.txt
 出力先ディレクトリ => ~/.backup/bakaup/2015-02-21/
-出力先ファイル     => ~/.backup/bakaup/2015-02-21/filename.txt_18:09
+出力先ファイル     => ~/.backup/bakaup/2015-02-21/%home%username%filename.txt_at_18:09
 
 以下、この「出力先ディレクトリ」を「バックアップディレクトリ」
 この「出力ファイル」の形式を「バックアップファイル」と呼びます。
@@ -67,7 +69,7 @@ exam) *nix OSの場合
 もしくは事前に |BakaupEnable| を実行するか
 |g:bakaup_auto_backup| を1に設定しておき |:write| を実行することで
 規定のファイルバックアップ用ディレクトリにカレントバッファのファイルの
-|:write| 実行前の状態がfilename.txt_2015-02-21 といった形式で出力されます。
+|:write| 実行前の状態がfilename.txt_at_2015-02-21 といった形式で出力されます。
 
 
 ==============================================================================
@@ -79,12 +81,12 @@ exam) *nix OSの場合
 g:bakaup_backup_dir				*g:bakaup_backup_dir*
 	既定値: expand("~/vim_bakaup")
 
-	|bakaup.vim| で使用するバックアップ用のディレクトリを指定します。
+	|bakaup.vim|で使用するバックアップ用のディレクトリを指定します。
 	これに指定されたディレクトリに
 	ファイルのバックアップが蓄積されていきます。
 
 	これに指定されたディレクトリは
-	|bakaup.vim| 読み込み時に自動的に作成されます。
+	|bakaup.vim|読み込み時に自動的に作成されます。
 
 	こちらをVim実行中環境で変更したい場合は
 	|let|を使用せずに|BakaupSetBackupDir|を使用してください。
@@ -93,10 +95,9 @@ g:bakaup_backup_dir				*g:bakaup_backup_dir*
 g:bakaup_auto_backup				*g:bakaup_auto_backup*
 	既定値: 0
 
-	1である場合は |bakaup.vim| にバックアップ設定を委ねます。
-	これにより |bakaup.vim| の行うことは以下です。
+	1である場合は自動バックアップ設定を|bakaup.vim|が自動的に行います。
+	これにより|bakaup.vim|の行うことは以下です。
 
-	- |backup| をオフにする
 	- |:write| 時に自動バックアップを行うイベントを登録する
 
 
@@ -105,29 +106,23 @@ g:bakaup_auto_backup				*g:bakaup_auto_backup*
 
 :BakaupBackupExecute				*:BakaupBackupExecute*
 
-|bakaup.vim| のバックアップを手動にて行います。
+|bakaup.vim|のバックアップを手動にて行います。
 カレントバッファの内容を規定ファイルにバックアップファイルに出力します。
 
 
 :BakaupEnable					*:BakaupEnable*
 
-|backup| の状態を内部に保存し
-|bakaup.vim| の自動バックアップ機能を有効にします。
-
-|backup| はオフにされます。
+|bakaup.vim|の自動バックアップ機能を有効にします。
 
 
 :BakaupDisable					*:BakaupDisable*
 
-|bakaup.vim| の自動バックアップ機能を無効にします。
-
-|backup| は |BakaupEnable| 実行時または
-|bakaup.vim| の読み込み時の状態に復元されます。
+|bakaup.vim|の自動バックアップ機能を無効にします。
 
 
 :BakaupArchiveBackups				*:BakaupArchiveBackups*
 
-|g:bakaup_backup_dir| 以下にある全てのバックアップディレクトリを
+|g:bakaup_backup_dir|以下にある全てのバックアップディレクトリを
 '{g:bakaup_backup_dir}/archive' ディレクトリに
 'vim-backup_%Y-%m-%d.tar.bz2' というファイル名形式で圧縮します。
 ( 直前に上記と同名のファイルが存在する場合は上書きされます )
@@ -157,8 +152,6 @@ Vim実行中環境で動的に変更する場合に使用します。
 ==============================================================================
 TODO						*bakaup-todo*
 
-* バックアップディレクトリとバックアップファイルのリスト化
-
 
 ==============================================================================
 更新履歴					*bakaup-changelog*
@@ -177,6 +170,11 @@ v0.0.2
 
 v0.0.3
 いくつかのコマンドを追加しました。
+
+
+v0.0.4
+デフォルトのbackupを自動的にオフにしないように変更しました。
+ディレクトリ情報をファイル名に保存するようにしました。
 
 
 ==============================================================================
