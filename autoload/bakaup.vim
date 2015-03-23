@@ -39,9 +39,12 @@ function! bakaup#backup_to_dir() abort
 		call s:mkdir_with_conditions(l:dailydir)
 	endif
 
-	let l:filename      = fnameescape(expand('%:p'))
+	let l:filename      = expand('%:p')
+	let l:filename1     = has('win32') ? substitute(l:filename, ':', '%', 'g') : l:filename
+
 	let l:sub_extension = strftime(has('win32') ? '_at_%H-%M' : '_at_%H:%M')
-	let l:backup_name   = substitute(l:filename, '/', '%', 'g') . l:sub_extension
+
+	let l:backup_name   = substitute(l:filename1, '/', '%', 'g') . l:sub_extension
 	let l:location      = l:dailydir . '/' . l:backup_name
 
 	" If editing exists file, backup detail of before :write

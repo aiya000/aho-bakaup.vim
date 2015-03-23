@@ -20,7 +20,9 @@ Vimで編集した多くのファイルのバックアップを貯めておく�
 
 ## Introduce
 You only write to your vimrc.  
-    NeoBundle 'aiya000/aho-bakaup.vim'  
-    let g:bakaup_auto_backup = 1  
+```
+NeoBundle 'aiya000/aho-bakaup.vim'
+let g:bakaup_auto_backup = 1
+```
 
-If it set, auto backup file to default backup directory.  
+If it set, auto backup file to default backup directory.
