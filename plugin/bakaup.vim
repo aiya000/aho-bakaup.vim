@@ -30,13 +30,11 @@ command! BakaupSexplore       call bakaup#explore('horizon')
 " Private field
 
 
-let g:bakaup_private = {}
-
 " Save &backup for restore when bakaup disabled
-let g:bakaup_private['default_backup'] = &backup
+let g:bakaup#default_backup = &backup
 
 " A directory for :BakaupArchiveBackups
-let g:bakaup_private['archive_dir'] = g:bakaup_backup_dir . '/archive'
+let g:bakaup#archive_dir = g:bakaup_backup_dir . '/archive'
 
 " make directory and set owner
 " args => a:dir :: String
@@ -57,11 +55,10 @@ endfunction "}}}
 
 if g:bakaup_auto_backup
 	BakaupEnable
-
 	if !isdirectory(g:bakaup_backup_dir)
 		call s:mkdir_with_conditions(g:bakaup_backup_dir)
 	endif
-	if !isdirectory(g:bakaup_private['archive_dir'])
-		call s:mkdir_with_conditions(g:bakaup_private['archive_dir'])
+	if !isdirectory(g:bakaup#archive_dir)
+		call s:mkdir_with_conditions(g:bakaup#archive_dir)
 	endif
 endif

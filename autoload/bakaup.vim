@@ -2,7 +2,6 @@
 " args => a:dir :: String
 function! s:mkdir_with_conditions(dir) "{{{
 	call mkdir(a:dir, 'p', 0700)
-
 	if has('unix') && executable('chown')
 		let l:username  = $USER
 		let l:groupname = $GROUP !=# '' ? $GROUP : $USER
@@ -11,13 +10,11 @@ function! s:mkdir_with_conditions(dir) "{{{
 	endif
 endfunction "}}}
 
-
 function! s:echo_error(msg) "{{{
 	echohl Error
 	echo a:msg
 	echohl None
 endfunction "}}}
-
 
 function! s:get_files(dir) "{{{
 	let l:files_str = glob(a:dir . '/*')
@@ -34,16 +31,13 @@ endfunction "}}}
 function! bakaup#backup_to_dir() abort
 	" base directory for file backup at today
 	let l:dailydir = g:bakaup_backup_dir . '/' . strftime('%Y-%m-%d')
-
 	if !isdirectory(l:dailydir)
 		call s:mkdir_with_conditions(l:dailydir)
 	endif
 
 	let l:filename      = expand('%:p')
 	let l:filename1     = has('win32') ? substitute(l:filename, ':', '%', 'g') : l:filename
-
 	let l:sub_extension = strftime(has('win32') ? '_at_%H-%M' : '_at_%H:%M')
-
 	let l:backup_name   = substitute(l:filename1, '/', '%', 'g') . l:sub_extension
 	let l:location      = l:dailydir . '/' . l:backup_name
 
@@ -94,11 +88,11 @@ function! bakaup#archive_backups() abort
 		return
 	endif
 
-	if !isdirectory(g:bakaup_private['archive_dir'])
-		call s:mkdir_with_conditions(g:bakaup_private['archive_dir'])
+	if !isdirectory(g:bakaup#archive_dir)
+		call s:mkdir_with_conditions(g:bakaup#archive_dir)
 	endif
 
-	let l:result =  s:bakaup_archiver()
+	let l:result = s:create_bakaup_archive()
 	if l:result is 0
 		echo 'bakaup archive succeed'
 	else
@@ -107,14 +101,14 @@ function! bakaup#archive_backups() abort
 endfunction
 
 
-" If do it, return 0
-" If don't it, return 1
-function! s:bakaup_archiver() "{{{
-	let l:daily_pattern = '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$'
+" If done it, return 0
+" If never done it, return 1
+function! s:create_bakaup_archive() "{{{
+	let l:DAILY_PATTERN = '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$' | lockvar l:DAILY_PATTERN
 	let l:dirs          = s:get_files(g:bakaup_backup_dir)
 	let l:names         = map(l:dirs, 'fnamemodify(v:val, ":t")')
 	let l:names1        = map(l:names, 'fnameescape(v:val)')
-	let l:backed_ups    = filter(l:names1, printf('v:val =~# "%s"', l:daily_pattern))
+	let l:backed_ups    = filter(l:names1, printf('v:val =~# "%s"', l:DAILY_PATTERN))
 
 	" If backed up files is nothing
 	if len(l:backed_ups) < 1
@@ -125,23 +119,22 @@ function! s:bakaup_archiver() "{{{
 	" Prepare shell command
 	let l:archive_name = 'vim-bakaup_' . strftime('%Y-%m-%d', localtime()) . '.tar.bz2'
 	let l:glob_format  = s:to_globf(l:backed_ups)
-
-	let l:archive_path = g:bakaup_private['archive_dir'] . '/' . l:archive_name
+	let l:archive_path = g:bakaup#archive_dir . '/' . l:archive_name
 	let l:target_path  = g:bakaup_backup_dir . '/' . l:glob_format
 	let l:tar_cmd      = printf('tar jcvf %s %s ; echo $?', l:archive_path, l:target_path)
 
 	" Archive backup directories
 	let l:tar_result      = system(l:tar_cmd)
-	let l:tar_return_code = split(l:tar_result, '\n')[-1]
-	if l:tar_return_code !=# 0
+	let l:tar_return_code = str2nr(split(l:tar_result, '\n')[-1])
+	if l:tar_return_code isnot 0
 		throw l:tar_result
 	endif
 
 	" Clean backed up directories
 	let l:rm_cmd         = printf('rm -rf %s ; echo $?', l:target_path)
 	let l:rm_result      = system(l:rm_cmd)
-	let l:rm_return_code = split(l:rm_result, '\n')[-1]
-	if l:rm_return_code !=# 0
+	let l:rm_return_code = str2nr(split(l:rm_result, '\n')[-1])
+	if l:rm_return_code isnot 0
 		throw l:rm_result
 	endif
 
@@ -165,9 +158,8 @@ endfunction "}}}
 "" Set bakaup variable, that for expected directory
 "" dir => new backup directory
 function! bakaup#set_bakaup_dir(dir)
-	let l:archive_dir                   = a:dir . '/archive'
-	let g:bakaup_backup_dir             = a:dir
-	let g:bakaup_private['archive_dir'] = l:archive_dir
+	let g:bakaup_backup_dir  = a:dir
+	let g:bakaup#archive_dir = a:dir . '/archive'
 endfunction
 
 
