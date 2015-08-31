@@ -121,20 +121,18 @@ function! s:create_bakaup_archive() "{{{
 	let l:glob_format  = s:to_globf(l:backed_ups)
 	let l:archive_path = g:bakaup#archive_dir . '/' . l:archive_name
 	let l:target_path  = g:bakaup_backup_dir . '/' . l:glob_format
-	let l:tar_cmd      = printf('tar jcvf %s %s ; echo $?', l:archive_path, l:target_path)
 
 	" Archive backup directories
-	let l:tar_result      = system(l:tar_cmd)
-	let l:tar_return_code = str2nr(split(l:tar_result, '\n')[-1])
-	if l:tar_return_code isnot 0
+	let l:tar_cmd    = printf('tar jcvf %s %s', l:archive_path, l:target_path)
+	let l:tar_result = system(l:tar_cmd)
+	if v:shell_error isnot 0
 		throw l:tar_result
 	endif
 
 	" Clean backed up directories
-	let l:rm_cmd         = printf('rm -rf %s ; echo $?', l:target_path)
-	let l:rm_result      = system(l:rm_cmd)
-	let l:rm_return_code = str2nr(split(l:rm_result, '\n')[-1])
-	if l:rm_return_code isnot 0
+	let l:rm_cmd    = printf('rm -rf %s ; echo $?', l:target_path)
+	let l:rm_result = system(l:rm_cmd)
+	if v:shell_error isnot 0
 		throw l:rm_result
 	endif
 
