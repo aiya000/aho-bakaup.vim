@@ -1,5 +1,3 @@
-source ./setup.vim
-
 Describe enable command
 	Before all
 		call PrepareBakaupDirectory()

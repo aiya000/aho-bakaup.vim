@@ -1,6 +1,3 @@
-"call themis#log('log')
-source ./setup.vim
-
 Describe execution
 	Before all
 		call PrepareBakaupDirectory()
