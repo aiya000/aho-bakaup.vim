@@ -1,8 +1,6 @@
-language: generic
+language: viml
 
 install:
-    - sudo apt-get update -q
-    - sudo apt-get insetall vim-nox
     - mkdir -p ~/.vim/bundle
     - git clone https://github.com/thinca/vim-themis ~/.vim/bundle/vim-themis
     - git clone https://github.com/aiya000/aho-bakaup.vim ~/.vim/bundle/aho-bakaup.vim
@@ -12,3 +10,6 @@ before_script:
 
 script:
     - ~/.vim/bundle/vim-themis/bin/themis ~/.vim/bundle/aho-bakaup.vim/test --reporter spec
+
+branches:
+    - master
