@@ -1,32 +1,33 @@
 # aho-bakaup.vim
 [![Build Status](https://travis-ci.org/aiya000/aho-bakaup.vim.svg?branch=master)](https://travis-ci.org/aiya000/aho-bakaup.vim)
 
-aho-bakaup.vim is auto backuper for vim .  
-auto backup to directory when executed :write  
+aho-bakaup.vimはアホやバカのためのVimプラグインです。  
+aho-bakaup.vimは`:write`時に、保存したファイルの直前の内容を、指定のディレクトリに保存します。  
+バックアップ済みファイルは、その時点での時間, 分, 秒に即したファイル名で保存されます。
 
-BakaupArchive command supported \*NIX OS only .  
+example
+```
+~/.backup/vim_backup/2016-10-06/%home%aiya000%Repository%aho-bakaup.vim%README.md_at_11:06
+```
 
-あなたはこれを入れるだけで、  
-Vimで編集した多くのファイルのバックアップを貯めておくことができます。  
-
-バックアップを貯めることにより、何年の何日の何時何分かにあなたがバックアップした  
-ファイルの内容を得ることができます。  
-
-また、バックアップにはundofileと同じくファイル名にディレクトリ情報が保存されます。  
-
-バックアップはデフォルトでは、ファイル書き込み時に行われるようになっています。  
+貴方はこれを参照することにより、VCSからすら見放された状況を打破することができます！
 
 
 ## Introduce
-You only write to your vimrc.  
+The example for dein.vim
 ```
-NeoBundle 'aiya000/aho-bakaup.vim'
+call dein#add('aiya000/aho-bakaup.vim')
 let g:bakaup_auto_backup = 1
 ```
 
 If it set, auto backup file to default backup directory.
 
+
+## TODO
+- Support BakaupArchive on Windows
+
+
 - - - - -
 
-author: aiya000  
-since:  2015-02-12  
+- author: aiya000
+- since:  2015-02-12
