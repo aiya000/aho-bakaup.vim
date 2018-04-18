@@ -1,32 +1,51 @@
-# aho-bakaup.vim
+# :muscle: aho-bakaup.vim :muscle:
 [![Build Status](https://travis-ci.org/aiya000/aho-bakaup.vim.svg?branch=master)](https://travis-ci.org/aiya000/aho-bakaup.vim)
 
-　aho-bakaup.vimはアホやバカのためのVimプラグインです（これはジョークです！） :cry:  
-aho-bakaup.vimは執拗なほどにファイルをバックアップします！
+A strongly `'backup'` of Vim for each your saving!
 
-aho-bakaup.vimは`:write`時に、保存したファイルの直前の内容を、指定のディレクトリに保存します。  
-バックアップ済みファイルは、その時点での時間, 分, 秒に即したファイル名で保存されます。
+# :diamond_shape_with_a_dot_inside: What is this? :diamond_shape_with_a_dot_inside:
+This backs up a file when you `:write` the file.
 
-example
+For example, below file is saved when you `:write` /home/you/todo.md at 2016-10-06 11:06 :dog2:
+
 ```
-~/.backup/vim_backup/2016-10-06/%home%aiya000%Repository%aho-bakaup.vim%README.md_at_11:06
+~/.backup/vim_backup/2016-10-06/%home%you%todo.md_at_11:06
 ```
 
-　貴方はこれを参照することにより、VCSからすら見放された状況を打破することができます！ :+1:  
-このプラグインのおかげで、私は何度救われたことか！ :smile: （まじで）
-
-
-## How to install
-
-### dein.vim
-
-Please follow these line
+# :gift: How to install :gift:
+## With dein.vim
+Please follow below line.
 
 ```vim
 call dein#add('aiya000/aho-bakaup.vim')
 ```
 
-## Special option
+Or follow below line if you use toml
+
+```toml
+[[plugins]]
+repo   = 'aiya000/aho-bakaup.vim'
+```
+
+And if you load toml lazily, you can use below lines.
+
+```toml
+[[plugins]]
+repo   = 'aiya000/aho-bakaup.vim'
+on_cmd = [
+    'BakaupBackupExecute',
+    'BakaupEnable',
+    'BakaupDisable',
+    'BakaupArchiveBackups',
+    'BakaupSetBackupDir',
+    'BakaupExplore',
+    'BakaupTexplore',
+    'BakaupVexplore',
+    'BakaupSexplore',
+]
+```
+
+# :thinking: How to use this :thinking:
 
 ```vim
 let g:bakaup_auto_backup = 1
@@ -34,13 +53,7 @@ let g:bakaup_auto_backup = 1
 
 This value is 0 by default.
 
-If this is set,
-each file is saved when you execute `:write` on your vim, automatically.
+aho-bakaup.vim is not enabled by default.  
+Above line enables aho-bakaup.vim!
 
-More spec is available in ./doc (help for vim) .  
-Please see it in your vim :smile:
-
-
-## TODO
-- Make document in English
-- Support BakaupArchive on Windows
+More specs are availabled in ./doc (`:help bakaup.vim`) :dog:
