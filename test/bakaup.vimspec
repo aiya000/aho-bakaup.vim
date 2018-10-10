@@ -1,0 +1,72 @@
+Describe bakaup.vim
+  Before all
+    let V = vital#bakaup#new()
+
+    let List = V.import('Data.List')
+    let Random = V.import('Random')
+  End
+
+  Describe BakaupBackupExecute
+    Before all
+      call InitializeBackupDirectory()
+    End
+
+    It makes the backup for the written file
+      execute ':edit' ('/tmp/' . Random.next())
+      BakaupBackupExecute
+      let made_dir = glob(g:bakaup_backup_dir . '/*')
+      Assert !empty(strchars(made_dir))
+    End
+  End
+
+  Describe BakaupArchiveBackups
+    Before all
+      call InitializeBackupDirectory()
+      execute ':edit' ('/tmp/' . Random.next())
+      BakaupBackupExecute
+    End
+
+    It makes an archive for backed up files
+      BakaupArchiveBackups
+      let archive = 'vim-bakaup_' . strftime('%Y-%m-%d', localtime()) . '.tar.bz2'
+      let files = map(
+        \ systemlist(printf('ls %s', g:bakaup#archive_dir)),
+        \ { _, file -> fnamemodify(file, ':t') }
+      \ )
+      Assert List.has(files, archive)
+    End
+
+    It removes all backed up directories after the archive is made
+      BakaupArchiveBackups
+      let DAILY_PATTERN = '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]' | lockvar DAILY_PATTERN
+      let directories = filter(
+        \ systemlist(printf('ls %s', g:bakaup#archive_dir)),
+        \ { _, file -> file =~# (DAILY_PATTERN . '$') }
+      \ )
+      Assert empty(directories)
+    End
+  End
+
+  Describe BakaupSetBakaupDir
+    It sets g:bakaup_backup_dir and g:bakaup#archive_dir with a value
+      let target_dir = expand('~/ahobaka_dir')
+      execute ':BakaupSetBackupDir' target_dir
+      Assert Equals(g:bakaup_backup_dir, target_dir)
+      Assert Equals(g:bakaup#archive_dir, target_dir . '/archive')
+    End
+  End
+
+  Describe BakaupEnable
+    It makes the event
+      BakaupEnable
+      Assert exists('#BakaupBackup')
+    End
+  End
+
+  Describe BakaupDisable
+    It removes the event
+      BakaupDisable
+      Assert !exists('#BakaupBackup')
+    End
+  End
+End
