@@ -1,179 +1,120 @@
-" make directory and set owner
-" args => a:dir :: String
-function! s:mkdir_with_conditions(dir) "{{{
-	call mkdir(a:dir, 'p', 0700)
-	if has('unix') && executable('chown')
-		let l:username  = $USER
-		let l:groupname = $GROUP !=# '' ? $GROUP : $USER
-		let l:command   = printf('chown -R %s:%s %s', l:username, l:groupname, a:dir)
-		call system(l:command)
-	endif
-endfunction "}}}
+let s:V = vital#bakaup#new()
 
-function! s:echo_error(msg) "{{{
-	echohl Error
-	echo a:msg
-	echohl None
-endfunction "}}}
+let s:Msg = s:V.import('Vim.Message')
+let s:Either = s:V.import('Data.Either')
 
-function! s:get_files(dir) "{{{
-	let l:files_str = glob(a:dir . '/*')
-	let l:files     = split(l:files_str, '\n')
-	return l:files
-endfunction "}}}
-
-
-"#-=- -=- -=- -=- -=- -=- -=- -=- -=-#"
-
-
-"" Execute backup file to backup directory
-"" Backup directory depends localtime
+" Backs up a file into the directory.
 function! bakaup#backup_to_dir() abort
-	" base directory for file backup at today
-	let l:dailydir = g:bakaup_backup_dir . '/' . strftime('%Y-%m-%d')
-	if !isdirectory(l:dailydir)
-		call s:mkdir_with_conditions(l:dailydir)
-	endif
+    " Make a directory for today's backing up
+    let daily_dir = g:bakaup_backup_dir . '/' . strftime('%Y-%m-%d')
+    if !isdirectory(daily_dir)
+        call mkdir(daily_dir, 'p', 0700)
+    endif
 
-	let l:filename      = expand('%:p')
-	let l:filename1     = has('win32') ? substitute(l:filename, ':', '%', 'g') : l:filename
-	let l:sub_extension = strftime(has('win32') ? '_at_%H-%M' : '_at_%H:%M')
-	let l:backup_name   = substitute(l:filename1, '/', '%', 'g') . l:sub_extension
-	let l:location      = l:dailydir . '/' . l:backup_name
+    let target_file = has('win32')
+        \ ? substitute(expand('%:p'), ':', '%', 'g')
+        \ : expand('%:p')
+    let suffix = strftime(has('win32') ? '_at_%H-%M' : '_at_%H:%M')
+    let backup_file = substitute(target_file, '/', '%', 'g') . suffix
+    let backup_file = daily_dir . '/' . backup_file
 
-	" If editing exists file, backup detail of before :write
-	" or backup current detail
-	if filereadable(l:filename)
-		call writefile(readfile(l:filename), l:location)
-	else
-		call writefile(getline(1, '$'), l:location)
-	endif
+    " NOTE: Don't use readfile() at here, because it fails with `nofile` files
+    call writefile(getline(1, '$'), backup_file)
 endfunction
 
-
-"#-=- -=- -=- -=- -=- -=- -=- -=- -=-#"
-
-
-"" Enable bakaup auto backup
+" Enables automatic backing up
 function! bakaup#enable_auto_backup()
-	" registered auto backup
-	augroup BakaupBackup
-		autocmd!
-		autocmd BufWritePre ?\+ call bakaup#backup_to_dir()
-	augroup END
+    augroup BakaupBackup
+        autocmd!
+        autocmd BufWritePre ?\+ call bakaup#backup_to_dir()
+    augroup END
 endfunction
 
-
-"#-=- -=- -=- -=- -=- -=- -=- -=- -=-#"
-
-
-"" Disable bakaup auto backup
+" Disables automatic backing up
 function! bakaup#disable_auto_backup()
-	try
-		" unregistered auto backup
-		augroup! BakaupBackup
-	catch /E367/
-		" ignored an error
-	endtry
+    try
+        augroup! BakaupBackup
+    catch /E367/
+        " Ignore the error that the augroup were not existent
+    endtry
 endfunction
 
-
-"#-=- -=- -=- -=- -=- -=- -=- -=- -=-#"
-
-
-"" Archive backup files
+" Makes the archive with backed up files
 function! bakaup#archive_backups() abort
-	if !executable('tar')
-		call s:echo_error('sorry, bakaup archiver needs tar command')
-		return
-	endif
+    if !executable('tar')
+        call s:Msg.error("aho-bakaup.vim needed tar command, but it couldn't be found x(")
+        return
+    endif
 
-	if !isdirectory(g:bakaup#archive_dir)
-		call s:mkdir_with_conditions(g:bakaup#archive_dir)
-	endif
+    if !isdirectory(g:bakaup#archive_dir)
+        call mkdir(g:bakaup#archive_dir, 'p', 0700)
+    endif
 
-	let l:result = s:create_bakaup_archive()
-	if l:result is 0
-		echo 'bakaup archive succeed'
-	else
-		echo 'backed up files is nothing, nothing todo.'
-	endif
+    call s:Either.bimap(s:make_archive(),
+        \ { msg -> s:Msg.echo('None', msg) },
+        \ { msg -> s:Msg.echo('Error', msg) }
+    \ )
 endfunction
 
+function! s:make_archive() "{{{
+    let DAILY_PATTERN = '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$' | lockvar DAILY_PATTERN
+    let files = map(
+        \ systemlist(printf('ls %s', g:bakaup_backup_dir)),
+        \ { _, file -> fnamemodify(file, ':t') }
+    \ )
+    let files = map(files, { _, file -> fnameescape(file) })
+    let files = filter(files, { _, x -> x =~# DAILY_PATTERN })
+    if empty(files)
+        return s:Either.right('Did nothing, befcause the targets were nothing.')
+    endif
 
-" If done it, return 0
-" If never done it, return 1
-function! s:create_bakaup_archive() "{{{
-	let l:DAILY_PATTERN = '[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]$' | lockvar l:DAILY_PATTERN
-	let l:dirs          = s:get_files(g:bakaup_backup_dir)
-	let l:names         = map(l:dirs, 'fnamemodify(v:val, ":t")')
-	let l:names1        = map(l:names, 'fnameescape(v:val)')
-	let l:backed_ups    = filter(l:names1, printf('v:val =~# "%s"', l:DAILY_PATTERN))
+    let archive_file = 'vim-bakaup_' . strftime('%Y-%m-%d', localtime()) . '.tar.bz2'
+    let archive_path = g:bakaup#archive_dir . '/' . archive_file
+    let target_path  = g:bakaup_backup_dir . '/' . s:make_glob_pattern(files)
 
-	" If backed up files is nothing
-	if len(l:backed_ups) < 1
-		" nothing to do
-		return 1
-	endif
+    " Make the archive
+    let tar_result = system(printf('tar jcvf %s %s', archive_path, target_path))
+    if v:shell_error isnot 0
+        return s:Either.left(tar_result)
+    endif
 
-	" Prepare shell command
-	let l:archive_name = 'vim-bakaup_' . strftime('%Y-%m-%d', localtime()) . '.tar.bz2'
-	let l:glob_format  = s:to_globf(l:backed_ups)
-	let l:archive_path = g:bakaup#archive_dir . '/' . l:archive_name
-	let l:target_path  = g:bakaup_backup_dir . '/' . l:glob_format
+    " Remove the archived directories
+    let rm_result = system(printf('rm -rf %s ; echo $?', target_path))
+    if v:shell_error isnot 0
+        return s:Either.left('rm_result')
+    endif
 
-	" Archive backup directories
-	let l:tar_cmd    = printf('tar jcvf %s %s', l:archive_path, l:target_path)
-	let l:tar_result = system(l:tar_cmd)
-	if v:shell_error isnot 0
-		throw l:tar_result
-	endif
-
-	" Clean backed up directories
-	let l:rm_cmd    = printf('rm -rf %s ; echo $?', l:target_path)
-	let l:rm_result = system(l:rm_cmd)
-	if v:shell_error isnot 0
-		throw l:rm_result
-	endif
-
-	return 0
+    return s:Either.right('Success!')
 endfunction "}}}
 
-
-" file_names to glob pattern of {..,..,..}
-function! s:to_globf(files) "{{{
-	" If a:files is single file, no glob a file
-	" If a:files is many files, glob files
-	return len(a:files) > 1
-	\    ? '{' . join(a:files, ',') . '}'
-	\    : a:files[0]
+" Makes a glob pattern like "{foo,bar,baz}" or "foo".
+"
+" Makes a pattern of "{foo,bar,baz}" if the taken argument is plural file,
+" or makes a pattern of "foo" if the taken argument is a file.
+function! s:make_glob_pattern(files) "{{{
+    return len(a:files) > 1
+        \ ? printf('{%s}', join(a:files, ','))
+        \ : a:files[0]
 endfunction "}}}
 
-
-"#-=- -=- -=- -=- -=- -=- -=- -=- -=-#"
-
-
-"" Set bakaup variable, that for expected directory
-"" dir => new backup directory
+" Sets variables based on the taken directory.
 function! bakaup#set_bakaup_dir(dir)
-	let g:bakaup_backup_dir  = a:dir
-	let g:bakaup#archive_dir = a:dir . '/archive'
+    let g:bakaup_backup_dir  = a:dir
+    let g:bakaup#archive_dir = a:dir . '/archive'
 endfunction
 
-
-"#-=- -=- -=- -=- -=- -=- -=- -=- -=-#"
-
-
-"" Explorer open backup directory
-"" args => a:0 = empty, 'tab', 'vertical', or 'horizon'
+" Opens netrw with the backup directory.
+" @param arguments 'tab', 'vertical', 'horizon', or empty.
 function! bakaup#explore(...)
-	if empty(a:000)
-		execute ':Explore' g:bakaup_backup_dir
-	elseif a:1 ==# 'tab'
-		execute ':Texplore' g:bakaup_backup_dir
-	elseif a:1 ==# 'vertical'
-		execute ':Vexplore' g:bakaup_backup_dir
-	elseif a:1 ==# 'horizon'
-		execute ':Sexplore' g:bakaup_backup_dir
-	endif
+    if empty(a:000)
+        execute ':Explore' g:bakaup_backup_dir
+    elseif a:1 ==# 'tab'
+        execute ':Texplore' g:bakaup_backup_dir
+    elseif a:1 ==# 'vertical'
+        execute ':Vexplore' g:bakaup_backup_dir
+    elseif a:1 ==# 'horizon'
+        execute ':Sexplore' g:bakaup_backup_dir
+    else
+        throw 'an unexpected arguments: ' . string(a:000)
+    endif
 endfunction
