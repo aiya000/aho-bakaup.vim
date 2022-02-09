@@ -2,11 +2,13 @@ let s:V = vital#bakaup#new()
 
 let s:Msg = s:V.import('Vim.Message')
 let s:Either = s:V.import('Data.Either')
+let s:Filepath = s:V.import('System.Filepath')
+let s:sep = s:Filepath.separator()
 
 " Backs up a file into the directory.
 function! bakaup#backup_to_dir() abort
     " Make a directory for today's backing up
-    let daily_dir = g:bakaup_backup_dir . '/' . strftime('%Y-%m-%d')
+    let daily_dir = g:bakaup_backup_dir . s:sep . strftime('%Y-%m-%d')
     if !isdirectory(daily_dir)
         call mkdir(daily_dir, 'p', 0700)
     endif
@@ -15,8 +17,8 @@ function! bakaup#backup_to_dir() abort
         \ ? substitute(expand('%:p'), ':', '%', 'g')
         \ : expand('%:p')
     let suffix = strftime(has('win32') ? '_at_%H-%M' : '_at_%H:%M')
-    let backup_file = substitute(target_file, '/', '%', 'g') . suffix
-    let backup_file = daily_dir . '/' . backup_file
+    let backup_file = substitute(target_file, s:sep, '%', 'g') . suffix
+    let backup_file = daily_dir . s:sep . backup_file
 
     " NOTE: Don't use readfile() at here, because it fails with `nofile` files
     call writefile(getline(1, '$'), backup_file)
@@ -69,8 +71,8 @@ function! s:make_archive() "{{{
     endif
 
     let archive_file = 'vim-bakaup_' . strftime('%Y-%m-%d', localtime()) . '.tar.bz2'
-    let archive_path = g:bakaup#archive_dir . '/' . archive_file
-    let target_path  = g:bakaup_backup_dir . '/' . s:make_glob_pattern(files)
+    let archive_path = g:bakaup#archive_dir . s:sep . archive_file
+    let target_path  = g:bakaup_backup_dir . s:sep . s:make_glob_pattern(files)
 
     " Make the archive
     let tar_result = system(printf('tar jcvf %s %s', archive_path, target_path))
@@ -100,7 +102,7 @@ endfunction "}}}
 " Sets variables based on the taken directory.
 function! bakaup#set_bakaup_dir(dir)
     let g:bakaup_backup_dir  = a:dir
-    let g:bakaup#archive_dir = a:dir . '/archive'
+    let g:bakaup#archive_dir = a:dir . s:sep . 'archive'
 endfunction
 
 " Opens netrw with the backup directory.
